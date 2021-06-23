@@ -1,5 +1,8 @@
 # Google SpreadSheet Script
 
+## TODO
+- Base Trade Fees are not included in APR functions
+
 ## How to use
 
 ### Setup
