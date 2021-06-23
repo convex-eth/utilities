@@ -987,7 +987,7 @@ const pools = [{
         "crvRewards": "0x61dB6c2321f784c8fAb8d5eF80f58F27C831dCc8",
         "stash": "0x644C8d1eD4b6aA68738a93C5c13c7fC19e126587",
         "swap": "0xF9440930043eb3997fc70e1339dBb11F341de7A8",
-        "currency": "USD",
+        "currency": "ETH",
         "extras": [{
             "contract": "0x681A790debE586A64eea055BF0983CD6629d8359",
             "token": "0xef3A930e1FfFFAcd2fc13434aC81bD278B0ecC8d",
