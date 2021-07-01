@@ -65,7 +65,7 @@ const main = async () => {
     let registryiface = new ethers.utils.Interface(REGISTRY_ABI);
     let tokeniface = new ethers.utils.Interface(CRV_ABI);
 
-    for (var i = 0; i < poolInfo.length; i++) {
+    await Promise.all([...Array(Number(poolLength)).keys()].map(async i => {
         console.log("getting supplies and balances for pool " + i + "...");
 
         calldata = [];
@@ -171,7 +171,7 @@ const main = async () => {
                 allCoins[coins[c]] = allCoins[coins[c]] + formattedBalances[c];
             }
         }
-    }
+    }));
 
 
     //staked cvx
@@ -190,28 +190,28 @@ const main = async () => {
 
 
     console.log(allCoins);
-    var keys = Object.keys(allCoins);
     var usdvalues = {};
-    for (var i = 0; i < keys.length; i++) {
-        console.log("getting price for " + keys[i]);
-        if (keys[i] == "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE") {
+    console.log("getting prices..");
+    await Promise.all(Object.keys(allCoins).map(async i => {
+        //console.log("getting price for " +i);
+        if (i == "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE") {
             var url = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=USD";
         } else {
-            var url = "https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=" + keys[i] + "&vs_currencies=USD";
+            var url = "https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=" + i + "&vs_currencies=USD";
         }
         await axios.get(url)
             .then(response => {
                 if (response.data.ethereum != undefined) {
-                    usdvalues[keys[i]] = allCoins[keys[i]] * Number(response.data.ethereum.usd);
+                    usdvalues[i] = allCoins[i] * Number(response.data.ethereum.usd);
                 } else {
-                    usdvalues[keys[i]] = allCoins[keys[i]] * Number(response.data[keys[i].toLowerCase()].usd);
+                    usdvalues[i] = allCoins[i] * Number(response.data[i.toLowerCase()].usd);
                 }
-
             })
             .catch(error => {
                 console.log(error);
             });
-    }
+    }));
+
     //console.log(usdvalues);
     var totalusd = 0;
     for (value in usdvalues) {
