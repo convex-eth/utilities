@@ -13,6 +13,7 @@
     "big-number": "^2.0.0",
     "ethers": "^5.4.0",
     "fs": "0.0.1-security",
+    "got": "^11.8.2",
     "jsonfile": "^6.1.0"
   }
 }
