@@ -32,20 +32,15 @@ const cvxAddress = "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B";
 const cvxRewardsAddress = "0xCF50b810E57Ac33B91dCF525C6ddd9881B139332";
 const cvxcrvAddress = "0x62B9c7356A2Dc64a1969e19C23e4f579F9810Aa7";
 
-const boosterContract = new ethers.Contract(boosterAddress, BOOSTER_ABI, provider);
-const boosterInstance = boosterContract.connect(provider);
+const boosterInstance = new ethers.Contract(boosterAddress, BOOSTER_ABI, provider);
 
-const cvxRewardsContract = new ethers.Contract(cvxRewardsAddress, CRV_ABI, provider);
-const cvxRewardsInstance = cvxRewardsContract.connect(provider);
+const cvxRewardsInstance = new ethers.Contract(cvxRewardsAddress, CRV_ABI, provider);
 
-const cvxcrvContract = new ethers.Contract(cvxcrvAddress, CRV_ABI, provider);
-const cvxcrvInstance = cvxcrvContract.connect(provider);
+const cvxcrvInstance = new ethers.Contract(cvxcrvAddress, CRV_ABI, provider);
 
-const multicallContract = new ethers.Contract("0x5e227AD1969Ea493B43F840cfF78d08a6fc17796", MULTICALL_ABI, provider);
-const multicallInstance = multicallContract.connect(provider);
+const multicallInstance = new ethers.Contract("0x5e227AD1969Ea493B43F840cfF78d08a6fc17796", MULTICALL_ABI, provider);
 
 const fixedForexPriceContract = new ethers.Contract("0x5C08bC10F45468F18CbDC65454Cbd1dd2cB1Ac65", FOREX_PRICE_ABI, provider);
-const fixedForexPriceInstance = fixedForexPriceContract.connect(provider);
 
 var precomputePrices = [
     "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
@@ -111,7 +106,7 @@ const getTVL = async () => {
     let tokeniface = new ethers.utils.Interface(CRV_ABI);
 
     await Promise.all([...Array(Number(poolLength)).keys()].map(async i => {
-        console.log("getting supplies and balances for pool " + i + "...");
+        // console.log("getting supplies and balances for pool " + i + "...");
 
         calldata = [];
         calldata.push([poolInfo[i].token, tokeniface.encodeFunctionData("totalSupply()", [])]);
@@ -140,7 +135,7 @@ const getTVL = async () => {
             console.log("pool " +i +" not in registry yet.")
 
             var swapContract = new ethers.Contract(poolInfo[i].lptoken, SWAP_ABI, provider);
-            var swapInstance = swapContract.connect(provider);
+            // var swapInstance = swapContract.connect(provider);
             
 
             //get coins
@@ -157,14 +152,21 @@ const getTVL = async () => {
                 return;
             }
             for(var d=0; d < coins.length; d++){
-                var tokenContract = new ethers.Contract(coins[d], CRV_ABI, provider);
-                var tokenInstance = tokenContract.connect(provider);
-
-                var dec = await tokenContract.decimals();
-                decimals.push(dec);
-
-                var bal = await tokenContract.balanceOf(poolInfo[i].lptoken);
-                balances.push(bal);
+                try{
+                    var tokenContract = new ethers.Contract(coins[d], CRV_ABI, provider);
+                    // var tokenInstance = tokenContract.connect(provider);
+    
+                    var dec = await tokenContract.decimals();
+                    decimals.push(dec);
+    
+                    var bal = await tokenContract.balanceOf(poolInfo[i].lptoken);
+                    balances.push(bal);
+                } catch(ex) {
+                    console.log('\n handle exception address=', coins[d], ' continue querying')
+                    decimals.push(0);
+                    balances.push(0);
+                }
+                
             }
 
             // console.log(coins);
@@ -271,6 +273,8 @@ const getTVL = async () => {
 
     }));
 
+    console.log("finish querying supplies and balances for pool")
+
     //staked cvx
     var cvxStakedSupply = await cvxRewardsInstance.totalSupply({
         blockTag: snapshotBlock
@@ -295,7 +299,7 @@ const getTVL = async () => {
     }
     totalusd += (Number(stakedCvxPrice) / 1e6);
     totalusd += (Number(stakedCvxCrvPrice) / 1e6);
-    console.log("total usd: " + totalusd + "m");
+    console.log("total usd: " + totalusd + " m");
 
     return poolSum;
 }
